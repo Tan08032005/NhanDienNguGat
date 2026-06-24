@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .light-theme {
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
+            --header-bg: rgba(255, 255, 255, 0.9);
+            --border-color: rgba(0, 0, 0, 0.08);
+            --subtitle-color: #64748b;
+        }
+
+        .dark-theme {
+            --bg-color: #0b0f19;
+            --text-color: #f1f5f9;
+            --header-bg: #111827;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --subtitle-color: #94a3b8;
+        }
+
+        .stApp {
+            background-color: var(--bg-color) !important;
+            color: var(--text-color) !important;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .main-header {
+            background: var(--header-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #ef4444);
+            border-radius: 3px;
+        }
+
+        .main-title {
+            color: var(--text-color);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: var(--subtitle-color);
+            font-size: 13px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body class="{{THEME_CLASS}}">
+    <div class="main-header {{THEME_CLASS}}">
+        <div class="main-title">🚨 HỆ THỐNG GIÁM SÁT NGỦ GẬT AI</div>
+        <div class="subtitle">Phát hiện ngủ gật và ngáp ngủ thời gian thực qua Camera</div>
+    </div>
+</body>
+
+</html>

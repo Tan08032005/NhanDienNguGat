@@ -13,12 +13,7 @@ class AudioFrameHandler:
         self.volume = float(volume)
         self.loop = loop
 
-        try:
-            self.sound = pygame.mixer.Sound(wav_path)
-            self.sound.set_volume(self.volume)
-
-        except Exception as e:
-            print(f"Lỗi khi tải file âm thanh: {e}")
+       
 
         # Đọc file wav để phục vụ WebRTC audio processing
         sr, data = wavfile.read(wav_path)

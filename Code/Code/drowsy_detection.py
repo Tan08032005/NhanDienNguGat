@@ -5,7 +5,7 @@ import mediapipe as mp
 from mediapipe.python.solutions.drawing_utils import _normalized_to_pixel_coordinates as denormalize_coordinates
 
 # ========== Các hàm tiện ích ==========
-21
+
 def distance(p1, p2):
     return sum([(i - j) ** 2 for i, j in zip(p1, p2)]) ** 0.5
 
@@ -70,6 +70,27 @@ def plot_text(image, text, origin, color,
               font=cv2.FONT_HERSHEY_SIMPLEX, fntScale=0.8, thickness=2):
     return cv2.putText(image, text, origin, font, fntScale, color, thickness)
 
+def draw_warning_box(frame, title, subtitle="Buon ngu!", action="Can nghi ngoi"):
+    """Vẽ hộp cảnh báo góc trên-phải trên khung camera."""
+    frame_h, frame_w = frame.shape[:2]
+    box_w, box_h = 300, 110
+    margin = 12
+    x1 = frame_w - box_w - margin
+    y1 = margin
+    x2 = x1 + box_w
+    y2 = y1 + box_h
+
+    overlay = frame.copy()
+    cv2.rectangle(overlay, (x1, y1), (x2, y2), (0, 0, 0), -1)
+    frame = cv2.addWeighted(overlay, 0.55, frame, 0.45, 0)
+    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(frame, title, (x1 + 12, y1 + 32), font, 0.72, (255, 255, 255), 2)
+    cv2.putText(frame, subtitle, (x1 + 12, y1 + 62), font, 0.62, (255, 255, 255), 2)
+    cv2.putText(frame, action, (x1 + 12, y1 + 92), font, 0.62, (255, 255, 255), 2)
+    return frame
+
 def plot_mouth_landmarks(frame, landmarks, frame_w, frame_h, color):
     mouth_idxs = [13, 14, 78, 308]  # trên, dưới, trái, phải
     for i in mouth_idxs:
@@ -123,6 +144,7 @@ class VideoFrameHandler:
             frame = plot_mouth_landmarks(frame, landmarks, frame_w, frame_h, self.state_tracker["COLOR"])
 
             # --- Kiểm tra nhắm mắt ---
+            is_drowsy = False
             if EAR < thresholds["EAR_THRESH"]:
                 end_time = time.perf_counter()
                 self.state_tracker["DROWSY_TIME"] += end_time - self.state_tracker["start_time"]
@@ -130,21 +152,23 @@ class VideoFrameHandler:
                 self.state_tracker["COLOR"] = self.RED
 
                 if self.state_tracker["DROWSY_TIME"] >= thresholds["WAIT_TIME"]:
-                    self.state_tracker["play_alarm"] = True
-                    plot_text(frame, "WAKE UP! WAKE UP!", ALM_txt_pos, self.RED)
+                    is_drowsy = True
             else:
                 self.state_tracker["start_time"] = time.perf_counter()
                 self.state_tracker["DROWSY_TIME"] = 0.0
                 self.state_tracker["COLOR"] = self.GREEN
-                self.state_tracker["play_alarm"] = False
 
             # --- Kiểm tra ngáp ---
-            if MAR > thresholds["MAR_THRESH"]:
-                self.state_tracker["yawn"] = True
-                self.state_tracker["play_alarm"] = True
+            is_yawn = MAR > thresholds["MAR_THRESH"]
+            self.state_tracker["yawn"] = is_yawn
+            self.state_tracker["play_alarm"] = is_drowsy or is_yawn
+
+            if is_yawn:
                 plot_text(frame, "YAWNING!", (10, int(frame_h * 0.97)), self.RED)
-            else:
-                self.state_tracker["yawn"] = False
+                frame = draw_warning_box(frame, "CANH BAO NGAP!")
+            elif is_drowsy:
+                plot_text(frame, "WAKE UP! WAKE UP!", ALM_txt_pos, self.RED)
+                frame = draw_warning_box(frame, "CANH BAO NGU GAT!")
 
             # --- Hiển thị số liệu ---
             EAR_txt = f"EAR: {round(EAR, 2)}"
